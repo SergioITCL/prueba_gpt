@@ -13,14 +13,32 @@ Estado actual:
 - Si funciona a la primera, sospechamos.
 - Si nadie sabe por qué funciona, no se toca.
 
-## Instalación
+## Calculadora web
+
+Ahora el repo incluye una calculadora con backend en Python y visualizador HTML.
+
+Archivos principales:
+
+- `calculator.py`: servidor HTTP y API de cálculo, sin dependencias externas.
+- `index.html`: interfaz web para sumar, restar, multiplicar, dividir, calcular potencias y módulos.
+
+Para arrancarla:
 
 ```bash
 git clone https://github.com/SergioITCL/prueba_gpt.git
 cd prueba_gpt
+python calculator.py
 ```
 
-Después, aplica el procedimiento estándar de ingeniería avanzada:
+Después abre:
+
+```text
+http://127.0.0.1:8000
+```
+
+Dos números entran. Un resultado sale. Normalmente.
+
+## Procedimiento estándar de ingeniería avanzada
 
 1. Ejecuta algo.
 2. Lee el error.
