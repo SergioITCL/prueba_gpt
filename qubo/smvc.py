@@ -10,8 +10,8 @@ from time import perf_counter
 
 import numpy as np
 
-from qubo_common import Solution, estimate_tau_max, qudo_value
-from smvc_nodes import (
+from .qubo_common import Solution, estimate_tau_max, qudo_value
+from .smvc_nodes import (
     last_tensor,
     new_initial_tensor,
     node_0,
