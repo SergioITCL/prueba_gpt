@@ -3,11 +3,23 @@
 from __future__ import annotations
 
 import argparse
+import sys
+from pathlib import Path
 
-from .qubo_problem_generator import generate_qubo_problem
-from .smvc import solver_smvc
-from .solvers.smvc_optimized import solver_smvc_optimized
-from .vectorized_programming_solver import solver_vectorized_dynamic_programming
+if __package__:
+    from .qubo_problem_generator import generate_qubo_problem
+    from .smvc import solver_smvc
+    from .solvers.smvc_optimized import solver_smvc_optimized
+    from .vectorized_programming_solver import solver_vectorized_dynamic_programming
+else:
+    repo_root = Path(__file__).resolve().parents[1]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+    from qubo.qubo_problem_generator import generate_qubo_problem
+    from qubo.smvc import solver_smvc
+    from qubo.solvers.smvc_optimized import solver_smvc_optimized
+    from qubo.vectorized_programming_solver import solver_vectorized_dynamic_programming
 
 
 def parse_args() -> argparse.Namespace:
