@@ -12,13 +12,20 @@ prueba_gpt/
 ├── games/
 │   └── flappy_game.py
 ├── qubo/
+│   ├── __init__.py
 │   ├── THIRD_PARTY_NOTICES.md
 │   ├── qubo_common.py
 │   ├── qubo_problem_generator.py
 │   ├── run_qubo_comparison.py
 │   ├── smvc.py
 │   ├── smvc_nodes.py
-│   └── vectorized_programming_solver.py
+│   ├── vectorized_programming_solver.py
+│   └── solvers/
+│       ├── __init__.py
+│       ├── benchmark_smvc.py
+│       └── smvc_optimized/
+│           ├── __init__.py
+│           └── solver.py
 ├── pyproject.toml
 └── README.md
 ```
@@ -50,21 +57,13 @@ poetry run python -c "import numpy, scipy; print(numpy.__version__, scipy.__vers
 
 La calculadora vive en `calculator/` y mantiene juntos el backend Python y la interfaz HTML.
 
-Ejecuta:
-
 ```powershell
 poetry run python .\calculator\calculator.py
 ```
 
-Después abre:
-
-```text
-http://127.0.0.1:8000
-```
+Después abre `http://127.0.0.1:8000`.
 
 ## Juego estilo Flappy Bird
-
-El juego está separado en `games/`:
 
 ```powershell
 poetry run python .\games\flappy_game.py
@@ -72,19 +71,63 @@ poetry run python .\games\flappy_game.py
 
 Controles: espacio, flecha arriba o clic para volar.
 
-## Comparación QUBO: DP vectorizado vs SMVC
+## QUBO/QUDO
 
 Todo el código relacionado con QUBO/QUDO está agrupado en `qubo/`.
 
-Incluye:
+Componentes principales:
 
 - `vectorized_programming_solver.py`: programación dinámica vectorizada exacta para problemas locales de rango `k`.
-- `smvc.py`: Sparse Matrix Vector Contraction.
-- `smvc_nodes.py`: construcción de los nodos dispersos utilizados por SMVC.
+- `smvc.py`: implementación SMVC original usada como referencia.
+- `smvc_nodes.py`: nodos de la implementación SMVC de referencia.
 - `qubo_problem_generator.py`: generador reproducible de instancias del proyecto del paper.
 - `qubo_common.py`: función objetivo, estimación de `tau` y modelo común de resultados.
-- `run_qubo_comparison.py`: ejecuta ambos algoritmos sobre exactamente la misma instancia y compara coste, tiempo y gap.
-- `THIRD_PARTY_NOTICES.md`: atribución del código adaptado desde `SergioITCL/QUDO-tensor-network-solver`, rama `notebook_to_script`.
+- `run_qubo_comparison.py`: compara programación dinámica exacta y SMVC.
+- `solvers/smvc_optimized/`: versión optimizada de SMVC.
+- `solvers/benchmark_smvc.py`: benchmark entre el SMVC original y el optimizado.
+
+### SMVC optimizado
+
+La versión optimizada mantiene la misma regla de decisión de SMVC, pero reduce el coste de ejecución mediante:
+
+- eliminación de matrices densas temporales durante la reconstrucción de la solución;
+- eliminación de `itertools.product` del camino crítico;
+- tablas de estados y transiciones en base `d` cacheadas;
+- contracción directa de vectores sin materializar la mayoría de operadores dispersos;
+- evaluación vectorizada de energías locales con NumPy;
+- exponentiales estabilizadas numéricamente mediante desplazamiento por el máximo;
+- reducción mediante `numpy.einsum` para evitar temporales innecesarios.
+
+La implementación original se conserva para poder validar resultados y medir aceleración.
+
+Benchmark por defecto:
+
+```powershell
+poetry run python -m qubo.solvers.benchmark_smvc
+```
+
+Ejemplo más exigente:
+
+```powershell
+poetry run python -m qubo.solvers.benchmark_smvc --n 200 --k 5 --dits 2 --seed 170 --repetitions 10
+```
+
+El benchmark informa del tiempo medio, aceleración y comprueba que ambas variantes devuelven la misma solución para la instancia utilizada.
+
+Uso directo desde Python:
+
+```python
+from qubo.solvers.smvc_optimized import solver_smvc_optimized
+
+result = solver_smvc_optimized(
+    q_matrix,
+    q_row,
+    dits=2,
+    n_neighbors=3,
+)
+```
+
+### Comparación QUBO: DP vectorizado vs SMVC
 
 Comparación por defecto, con `n=20`, `k=2`, `dits=2` y seed 7:
 
