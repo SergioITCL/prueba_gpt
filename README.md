@@ -30,6 +30,20 @@ Instala las dependencias:
 poetry install
 ```
 
+Si Poetry avisa de que `pyproject.toml changed significantly since poetry.lock was last generated`, significa que tienes un `poetry.lock` local antiguo. El repositorio remoto no incluye actualmente ese lock. En PowerShell puedes regenerarlo así:
+
+```powershell
+Remove-Item .\poetry.lock -ErrorAction SilentlyContinue
+poetry lock
+poetry install
+```
+
+Después comprueba que NumPy y SciPy están disponibles:
+
+```powershell
+poetry run python -c "import numpy, scipy; print(numpy.__version__, scipy.__version__)"
+```
+
 Ejecuta una comparación por defecto (`n=20`, `k=2`, binario, seed 7):
 
 ```bash
