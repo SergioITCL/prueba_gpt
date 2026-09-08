@@ -10,7 +10,7 @@ from time import perf_counter
 
 import numpy as np
 
-from qubo_common import Solution
+from .qubo_common import Solution
 
 
 def _validate_inputs(
