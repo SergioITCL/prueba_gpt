@@ -13,9 +13,55 @@ Estado actual:
 - Si funciona a la primera, sospechamos.
 - Si nadie sabe por qué funciona, no se toca.
 
+## Comparación QUBO: DP vectorizado vs SMVC
+
+El repositorio incluye ahora dos métodos adaptados de `SergioITCL/QUDO-tensor-network-solver`, rama `notebook_to_script`:
+
+- `vectorized_programming_solver.py`: programación dinámica vectorizada exacta para problemas QUDO/QUBO con interacciones locales de rango `k`.
+- `smvc.py`: Sparse Matrix Vector Contraction, método basado en contracciones de matrices dispersas.
+- `smvc_nodes.py`: construcción de los nodos dispersos de SMVC.
+- `qubo_problem_generator.py`: generador reproducible de problemas utilizado por los experimentos del proyecto del paper.
+- `qubo_common.py`: evaluación del objetivo, estimación de `tau` y modelo común de resultados.
+- `run_qubo_comparison.py`: genera una instancia y ejecuta ambos métodos sobre exactamente el mismo problema.
+
+Instala las dependencias:
+
+```bash
+poetry install
+```
+
+Ejecuta una comparación por defecto (`n=20`, `k=2`, binario, seed 7):
+
+```bash
+poetry run python run_qubo_comparison.py
+```
+
+También puedes controlar los parámetros:
+
+```bash
+poetry run python run_qubo_comparison.py --n 30 --k 3 --dits 2 --seed 170
+```
+
+O utilizar instancias con interacciones fijas:
+
+```bash
+poetry run python run_qubo_comparison.py --n 30 --k 3 --seed 170 --instance-type fixed
+```
+
+El script muestra para cada algoritmo:
+
+- solución obtenida;
+- valor de la función objetivo;
+- tiempo de ejecución;
+- gap absoluto y relativo de SMVC respecto al óptimo obtenido por programación dinámica vectorizada.
+
+La programación dinámica es exacta para esta estructura local. SMVC es el método de contracción que se compara contra ese óptimo.
+
+La atribución del código adaptado está en `THIRD_PARTY_NOTICES.md`.
+
 ## Calculadora web
 
-Ahora el repo incluye una calculadora con backend en Python y visualizador HTML.
+El repo también incluye una calculadora con backend en Python y visualizador HTML.
 
 Archivos principales:
 
