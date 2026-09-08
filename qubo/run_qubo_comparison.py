@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import argparse
 
-from qubo_problem_generator import generate_qubo_problem
-from smvc import solver_smvc
-from vectorized_programming_solver import (
+from .qubo_problem_generator import generate_qubo_problem
+from .smvc import solver_smvc
+from .vectorized_programming_solver import (
     solver_vectorized_dynamic_programming,
 )
 
