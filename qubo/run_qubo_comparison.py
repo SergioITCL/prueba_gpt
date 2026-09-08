@@ -1,4 +1,4 @@
-"""Generate one paper-style QUBO instance and run both requested solvers."""
+"""Generate one paper-style QUBO instance and compare all three solvers."""
 
 from __future__ import annotations
 
@@ -6,16 +6,15 @@ import argparse
 
 from .qubo_problem_generator import generate_qubo_problem
 from .smvc import solver_smvc
-from .vectorized_programming_solver import (
-    solver_vectorized_dynamic_programming,
-)
+from .solvers.smvc_optimized import solver_smvc_optimized
+from .vectorized_programming_solver import solver_vectorized_dynamic_programming
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Compare exact vectorized dynamic programming against SMVC "
-            "on the same reproducible banded QUBO instance."
+            "Compare exact vectorized dynamic programming, reference SMVC, "
+            "and optimized SMVC on the same reproducible banded QUBO instance."
         )
     )
     parser.add_argument("--n", type=int, default=20, help="Number of variables")
@@ -34,6 +33,20 @@ def parse_args() -> argparse.Namespace:
         help="Optional SMVC tau. Default uses the repository estimator.",
     )
     return parser.parse_args()
+
+
+def _gap(cost: float, optimum: float) -> tuple[float, float | None]:
+    absolute = cost - optimum
+    relative = absolute / abs(optimum) if optimum != 0 else None
+    return absolute, relative
+
+
+def _print_result(name: str, result) -> None:
+    print(name)
+    print(f"  cost:     {result.cost:.12g}")
+    print(f"  time:     {result.execution_time:.6f} s")
+    print(f"  solution: {result.solution_list}")
+    print()
 
 
 def main() -> None:
@@ -66,12 +79,20 @@ def main() -> None:
         n_neighbors=args.k,
         tau=args.tau,
     )
+    optimized = solver_smvc_optimized(
+        instance["q_matrix"],
+        instance["q_row"],
+        dits=args.dits,
+        n_neighbors=args.k,
+        tau=args.tau,
+    )
 
-    absolute_gap = smvc.cost - exact.cost
-    relative_gap = (
-        absolute_gap / abs(exact.cost)
-        if exact.cost != 0
-        else float("nan")
+    smvc_gap, smvc_relative_gap = _gap(smvc.cost, exact.cost)
+    optimized_gap, optimized_relative_gap = _gap(optimized.cost, exact.cost)
+    speedup = (
+        smvc.execution_time / optimized.execution_time
+        if optimized.execution_time > 0
+        else float("inf")
     )
 
     print("QUBO comparison")
@@ -81,23 +102,28 @@ def main() -> None:
         f"n={args.n} k={args.k} dits={args.dits}"
     )
     print()
-    print("Vectorized dynamic programming (exact)")
-    print(f"  cost:     {exact.cost:.12g}")
-    print(f"  time:     {exact.execution_time:.6f} s")
-    print(f"  solution: {exact.solution_list}")
-    print()
-    print("SMVC")
-    print(f"  cost:     {smvc.cost:.12g}")
-    print(f"  time:     {smvc.execution_time:.6f} s")
-    print(f"  solution: {smvc.solution_list}")
-    print()
-    print("Comparison")
-    print(f"  absolute gap (SMVC - optimum): {absolute_gap:.12g}")
-    if exact.cost != 0:
-        print(f"  relative gap:                  {relative_gap:.6%}")
+
+    _print_result("Vectorized dynamic programming (exact)", exact)
+    _print_result("SMVC (reference)", smvc)
+    _print_result("SMVC optimized", optimized)
+
+    print("Comparison against exact optimum")
+    print(f"  SMVC absolute gap:             {smvc_gap:.12g}")
+    print(f"  SMVC optimized absolute gap:   {optimized_gap:.12g}")
+    if smvc_relative_gap is None:
+        print("  SMVC relative gap:             undefined (optimum is zero)")
+        print("  Optimized relative gap:        undefined (optimum is zero)")
     else:
-        print("  relative gap:                  undefined (optimum is zero)")
-    print(f"  same solution:                 {smvc.solution_list == exact.solution_list}")
+        print(f"  SMVC relative gap:             {smvc_relative_gap:.6%}")
+        print(f"  Optimized relative gap:        {optimized_relative_gap:.6%}")
+
+    print()
+    print("SMVC reference vs optimized")
+    print(f"  speedup:                       {speedup:.2f}x")
+    print(f"  same solution:                 {smvc.solution_list == optimized.solution_list}")
+    print(f"  same cost:                     {abs(smvc.cost - optimized.cost) <= 1e-9}")
+    print(f"  reference matches optimum:     {abs(smvc.cost - exact.cost) <= 1e-9}")
+    print(f"  optimized matches optimum:     {abs(optimized.cost - exact.cost) <= 1e-9}")
 
 
 if __name__ == "__main__":
