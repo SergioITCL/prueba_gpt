@@ -1,36 +1,38 @@
 # prueba_gpt
 
-Bienvenido al repositorio donde las ideas entran como pruebas y, con un poco de suerte, salen como código.
+Repositorio de pruebas dividido por proyectos para que la raíz no parezca un cajón de cables.
 
-## ¿Qué es esto?
+## Estructura
 
-Un laboratorio oficial de cosas que quizá funcionen.
+```text
+prueba_gpt/
+├── calculator/
+│   ├── calculator.py
+│   └── index.html
+├── games/
+│   └── flappy_game.py
+├── qubo/
+│   ├── THIRD_PARTY_NOTICES.md
+│   ├── qubo_common.py
+│   ├── qubo_problem_generator.py
+│   ├── run_qubo_comparison.py
+│   ├── smvc.py
+│   ├── smvc_nodes.py
+│   └── vectorized_programming_solver.py
+├── pyproject.toml
+└── README.md
+```
 
-Estado actual:
+## Instalación
 
-- Si compila, celebramos.
-- Si falla, era una prueba.
-- Si funciona a la primera, sospechamos.
-- Si nadie sabe por qué funciona, no se toca.
+Desde la raíz del repositorio:
 
-## Comparación QUBO: DP vectorizado vs SMVC
-
-El repositorio incluye ahora dos métodos adaptados de `SergioITCL/QUDO-tensor-network-solver`, rama `notebook_to_script`:
-
-- `vectorized_programming_solver.py`: programación dinámica vectorizada exacta para problemas QUDO/QUBO con interacciones locales de rango `k`.
-- `smvc.py`: Sparse Matrix Vector Contraction, método basado en contracciones de matrices dispersas.
-- `smvc_nodes.py`: construcción de los nodos dispersos de SMVC.
-- `qubo_problem_generator.py`: generador reproducible de problemas utilizado por los experimentos del proyecto del paper.
-- `qubo_common.py`: evaluación del objetivo, estimación de `tau` y modelo común de resultados.
-- `run_qubo_comparison.py`: genera una instancia y ejecuta ambos métodos sobre exactamente el mismo problema.
-
-Instala las dependencias:
-
-```bash
+```powershell
+git pull
 poetry install
 ```
 
-Si Poetry avisa de que `pyproject.toml changed significantly since poetry.lock was last generated`, significa que tienes un `poetry.lock` local antiguo. El repositorio remoto no incluye actualmente ese lock. En PowerShell puedes regenerarlo así:
+Si Poetry avisa de que `pyproject.toml changed significantly since poetry.lock was last generated`, tienes un `poetry.lock` local antiguo. Regénéralo:
 
 ```powershell
 Remove-Item .\poetry.lock -ErrorAction SilentlyContinue
@@ -38,56 +40,20 @@ poetry lock
 poetry install
 ```
 
-Después comprueba que NumPy y SciPy están disponibles:
+Puedes comprobar NumPy y SciPy con:
 
 ```powershell
 poetry run python -c "import numpy, scipy; print(numpy.__version__, scipy.__version__)"
 ```
 
-Ejecuta una comparación por defecto (`n=20`, `k=2`, binario, seed 7):
-
-```bash
-poetry run python run_qubo_comparison.py
-```
-
-También puedes controlar los parámetros:
-
-```bash
-poetry run python run_qubo_comparison.py --n 30 --k 3 --dits 2 --seed 170
-```
-
-O utilizar instancias con interacciones fijas:
-
-```bash
-poetry run python run_qubo_comparison.py --n 30 --k 3 --seed 170 --instance-type fixed
-```
-
-El script muestra para cada algoritmo:
-
-- solución obtenida;
-- valor de la función objetivo;
-- tiempo de ejecución;
-- gap absoluto y relativo de SMVC respecto al óptimo obtenido por programación dinámica vectorizada.
-
-La programación dinámica es exacta para esta estructura local. SMVC es el método de contracción que se compara contra ese óptimo.
-
-La atribución del código adaptado está en `THIRD_PARTY_NOTICES.md`.
-
 ## Calculadora web
 
-El repo también incluye una calculadora con backend en Python y visualizador HTML.
+La calculadora vive en `calculator/` y mantiene juntos el backend Python y la interfaz HTML.
 
-Archivos principales:
+Ejecuta:
 
-- `calculator.py`: servidor HTTP y API de cálculo, sin dependencias externas.
-- `index.html`: interfaz web para sumar, restar, multiplicar, dividir, calcular potencias y módulos.
-
-Para arrancarla:
-
-```bash
-git clone https://github.com/SergioITCL/prueba_gpt.git
-cd prueba_gpt
-python calculator.py
+```powershell
+poetry run python .\calculator\calculator.py
 ```
 
 Después abre:
@@ -96,21 +62,53 @@ Después abre:
 http://127.0.0.1:8000
 ```
 
-Dos números entran. Un resultado sale. Normalmente.
+## Juego estilo Flappy Bird
 
-## Procedimiento estándar de ingeniería avanzada
+El juego está separado en `games/`:
 
-1. Ejecuta algo.
-2. Lee el error.
-3. Busca el error.
-4. Cambia una línea.
-5. Introduce dos errores nuevos.
-6. Repite hasta que parezca estable.
+```powershell
+poetry run python .\games\flappy_game.py
+```
 
-## Contribuciones
+Controles: espacio, flecha arriba o clic para volar.
 
-Las contribuciones son bienvenidas, especialmente las que reducen el número de `TODO` sin aumentar misteriosamente el número de `FIXME`.
+## Comparación QUBO: DP vectorizado vs SMVC
 
-## Garantía
+Todo el código relacionado con QUBO/QUDO está agrupado en `qubo/`.
 
-Ninguna. Pero el README ha quedado bastante profesional para ser un repositorio de pruebas.
+Incluye:
+
+- `vectorized_programming_solver.py`: programación dinámica vectorizada exacta para problemas locales de rango `k`.
+- `smvc.py`: Sparse Matrix Vector Contraction.
+- `smvc_nodes.py`: construcción de los nodos dispersos utilizados por SMVC.
+- `qubo_problem_generator.py`: generador reproducible de instancias del proyecto del paper.
+- `qubo_common.py`: función objetivo, estimación de `tau` y modelo común de resultados.
+- `run_qubo_comparison.py`: ejecuta ambos algoritmos sobre exactamente la misma instancia y compara coste, tiempo y gap.
+- `THIRD_PARTY_NOTICES.md`: atribución del código adaptado desde `SergioITCL/QUDO-tensor-network-solver`, rama `notebook_to_script`.
+
+Comparación por defecto, con `n=20`, `k=2`, `dits=2` y seed 7:
+
+```powershell
+poetry run python .\qubo\run_qubo_comparison.py
+```
+
+Con parámetros propios:
+
+```powershell
+poetry run python .\qubo\run_qubo_comparison.py --n 30 --k 3 --dits 2 --seed 170
+```
+
+Con el generador de interacciones fijas:
+
+```powershell
+poetry run python .\qubo\run_qubo_comparison.py --n 30 --k 3 --seed 170 --instance-type fixed
+```
+
+La programación dinámica actúa como referencia exacta. El script informa del gap de SMVC respecto a ese óptimo.
+
+## Filosofía del repositorio
+
+1. Cada experimento tiene su carpeta.
+2. La raíz contiene solo configuración y documentación.
+3. Si funciona a la primera, se documenta antes de que deje de hacerlo.
+4. Si nadie sabe por qué funciona, se añaden tests antes de tocarlo.
