@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "prueba-gpt"
+version = "0.1.0"
+description = "Calculadora web mínima con backend en Python y frontend HTML."
+authors = ["Sergio"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
